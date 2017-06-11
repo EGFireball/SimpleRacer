@@ -3,7 +3,14 @@ guid: 840f418fc59916d4c853194dad6db8ae
 ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
+    100000: RoadBlocker
+    100002: //RootNode
+    400000: RoadBlocker
+    400002: //RootNode
+    2300000: RoadBlocker
+    3300000: RoadBlocker
     4300000: RoadBlocker
+    11100000: //RootNode
   materials:
     importMaterials: 1
     materialName: 3

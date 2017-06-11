@@ -83,6 +83,8 @@ namespace UnityStandardAssets.Vehicles.MyCar {
         private bool isCornering = false;
         private bool isCollidedOnReverse = false;
 
+        private bool overtaking;
+
         [Header("Respawners")]
         [SerializeField] private Transform respawner;
 
@@ -156,11 +158,21 @@ namespace UnityStandardAssets.Vehicles.MyCar {
 
 			//Front Sensor
 			if (Physics.Raycast (sensorStartingPosition, transform.forward, out hit, sensorLenght)) {
-				if (!hit.collider.CompareTag ("Terrain") && !hit.collider.CompareTag ("Ai")) {
-					//print (hit.collider.tag);
-					Debug.DrawLine (sensorStartingPosition, hit.point);
-					avoiding = true;
-                    isCollidedOnReverse = false;
+
+                if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
+                {
+
+                }
+                else
+                {
+
+                    if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai"))
+                    {
+                        //print (hit.collider.tag);
+                        Debug.DrawLine(sensorStartingPosition, hit.point);
+                        avoiding = true;
+                        isCollidedOnReverse = false;
+                    }
                 }
 			}
 
@@ -168,12 +180,22 @@ namespace UnityStandardAssets.Vehicles.MyCar {
 			//Front Right Sensor
 			sensorStartingPosition += transform.right * frontSideSensorPos;
 			if (Physics.Raycast (sensorStartingPosition, transform.forward, out hit, sensorLenght)) {
-				if (!hit.collider.CompareTag ("Terrain") && !hit.collider.CompareTag ("Ai")) {
-					//print (hit.collider.tag + "..." + hit.collider.name);
-					Debug.DrawLine (sensorStartingPosition, hit.point);
-					avoiding = true;
-					avoidMultiplier -= 1f;
-                    isCollidedOnReverse = false;
+
+                if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
+                {
+
+                }
+                else
+                {
+
+                    if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai"))
+                    {
+                        //print (hit.collider.tag + "..." + hit.collider.name);
+                        Debug.DrawLine(sensorStartingPosition, hit.point);
+                        avoiding = true;
+                        avoidMultiplier -= 1f;
+                        isCollidedOnReverse = false;
+                    }
                 }
 			} //Side Right Sensor
 			else if (Physics.Raycast (sensorStartingPosition, Quaternion.AngleAxis(frontSensorAngel, transform.up) * transform.forward, out hit, sensorLenght)) {
@@ -189,33 +211,62 @@ namespace UnityStandardAssets.Vehicles.MyCar {
 			//Front Left Sensor
 			sensorStartingPosition -= transform.right * frontSideSensorPos * 2;
 			if (Physics.Raycast (sensorStartingPosition, transform.forward, out hit, sensorLenght)) {
-				if (!hit.collider.CompareTag ("Terrain") && !hit.collider.CompareTag ("Ai")) {
-					//print (hit.collider.tag);
-					Debug.DrawLine (sensorStartingPosition, hit.point);
-					avoiding = true;
-					avoidMultiplier += 1f;
-                    isCollidedOnReverse = false;
+                if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
+                {
+
+                }
+                else
+                {
+
+                    if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai"))
+                    {
+                        //print (hit.collider.tag);
+                        Debug.DrawLine(sensorStartingPosition, hit.point);
+                        avoiding = true;
+                        avoidMultiplier += 1f;
+                        isCollidedOnReverse = false;
+                    }
                 }
 			} //Side Left Sensor
 			else if (Physics.Raycast (sensorStartingPosition, Quaternion.AngleAxis(-frontSensorAngel, transform.up) * transform.forward, out hit, sensorLenght)) {
-				if (!hit.collider.CompareTag ("Terrain") && !hit.collider.CompareTag ("Ai")) {
-					//print (hit.collider.tag);
-					Debug.DrawLine (sensorStartingPosition, hit.point);
-					avoiding = true;
-					avoidMultiplier += 0.5f;
-                    isCollidedOnReverse = false;
 
+                if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
+                {
+
+                }
+                else
+                {
+
+                    if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai"))
+                    {
+                        //print (hit.collider.tag);
+                        Debug.DrawLine(sensorStartingPosition, hit.point);
+                        avoiding = true;
+                        avoidMultiplier += 0.5f;
+                        isCollidedOnReverse = false;
+
+                    }
                 }
 			}
 
             //Rear sensor
             if (Physics.Raycast (backSensorStartingPos, -transform.forward, out hit, sensorLenght)) {
-				if (!hit.collider.CompareTag ("Terrain") && !hit.collider.CompareTag ("Ai")) {
-					//print (hit.collider.tag);
-					Debug.DrawLine (backSensorStartingPos, hit.point);
-					avoiding = true;
-                    isCollidedOnReverse = true;
 
+                if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
+                {
+
+                }
+                else
+                {
+
+                    if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai"))
+                    {
+                        //print (hit.collider.tag);
+                        Debug.DrawLine(backSensorStartingPos, hit.point);
+                        avoiding = true;
+                        isCollidedOnReverse = true;
+
+                    }
                 }
 			}
 			if (avoiding) {
@@ -296,7 +347,7 @@ namespace UnityStandardAssets.Vehicles.MyCar {
 			//m_WheelColliders[0].motorTorque = moveSpeed;
 			//m_WheelColliders[1].motorTorque = moveSpeed;
 
-            if(isCornering)
+            if(wayPoints[_myWaypointIndex].GetComponent<WayPoint>().IsSlowPoint())//if(isCornering)
             {
                 speedWhileCornering();
             } else {
@@ -481,7 +532,7 @@ namespace UnityStandardAssets.Vehicles.MyCar {
 		}
 
 		void CheckWaypointDistance() {
-			if(Vector3.Distance(transform.position, wayPoints[_myWaypointIndex].position) < 3.6f) {
+			if(Vector3.Distance(transform.position, wayPoints[_myWaypointIndex].position) < 7.6f) {
 				if (_myWaypointIndex == wayPoints.Count - 1) {
 					_myWaypointIndex = 0;
 				} else {
