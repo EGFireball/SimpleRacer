@@ -50,6 +50,7 @@ Thumbs.db
 x64/
 x86/
 build/
+[Bb]uilds/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -216,3 +217,6 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+
+#Others
+*.rar
