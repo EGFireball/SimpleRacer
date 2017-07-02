@@ -76,9 +76,11 @@ namespace UnityStandardAssets.Vehicles.MyCar
         //Sensors
         [Header("Sensors")]
         public float sensorLenght = 3f;
+        public float sideSensorLenght = 1f;
         public Vector3 frontSensorPosition = new Vector3(0, 0.5f, 0.5f);
         public float frontSideSensorPos = 1.5f;
         public float frontSensorAngel = 30f;
+        public float sideSensorAngel = 90f;
         public Vector3 backSensorPos = new Vector3(0, 0.5f, -0.5f);
         public float rearSideSensorPos = 1.5f;
         public float rearSensorAngel = -30f;
@@ -88,7 +90,9 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
         private bool isCollided = false;
         private bool isCornering = false;
+        private bool isCollidedInFront = false;
         private bool isCollidedOnReverse = false;
+        private bool isCollidedOnSide = false;
 
         public float overtakinSensorLenght = 3f;
         public Vector3 frontOvertakingSensorPosition = new Vector3(0, 0.5f, 0.5f);
@@ -113,8 +117,8 @@ namespace UnityStandardAssets.Vehicles.MyCar
         // Use this for initialization
         void Start()
         {
-            wayPoints = getPathTransform();
-            overtakePoints = getOvertakePathTransform();
+            wayPoints = GetPathTransform();
+            overtakePoints = GetOvertakePathTransform();
 
             m_WheelMeshLocalRotations = new Quaternion[4];
             for (int i = 0; i < 4; i++)
@@ -140,13 +144,13 @@ namespace UnityStandardAssets.Vehicles.MyCar
             CurrentSpeed = transform.GetComponent<Rigidbody>().velocity.magnitude * 2.23693629f;
 
             //print (CurrentSpeed);
-
-            if (CurrentSpeed >= 5f && isCollided)
-            {
-                print("RESET");
-                StopReverse();
-                isCollided = false;
-            }
+            //if (CurrentSpeed >= 5f && isCollided)
+            //{
+            //    print("RESET");
+            //    //StopReverse();
+            //    //AiCarBraking();
+            //    isCollided = false;
+            //}
 
             SensorsForOvertaking();
             Sensors();
@@ -164,14 +168,25 @@ namespace UnityStandardAssets.Vehicles.MyCar
                 isCornering = false;
             }
 
+            if(CurrentSpeed > 10f)
+            {
+                isCollided = false;
+            }
+
+            if (isCollided)
+            {
+                Unstuck();
+                //print("RE-Spawning");
+                //Respawn();
+            }
+
+            ApplySteer();
             if (!isCollided)
             {
-                ApplySteer();
                 Movement();
-                CheckWaypointDistance();
-                //AiCarBraking ();
-                LerpToSteerAngel();
             }
+            CheckWaypointDistance();
+            LerpToSteerAngel();
         }
 
         void Sensors()
@@ -200,6 +215,8 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     Debug.DrawLine(sensorStartingPosition, hit.point, Color.red);
                     avoiding = true;
                     isCollidedOnReverse = false;
+                    isCollidedOnSide = false;
+                    isCollidedInFront = true;
                 }
 
             }
@@ -219,9 +236,11 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     avoiding = true;
                     avoidMultiplier -= 1f;
                     isCollidedOnReverse = false;
+                    isCollidedOnSide = false;
+                    isCollidedInFront = true;
                 }
 
-            } //Side Right Sensor
+            } //Side Front Right Sensor
             else if (Physics.Raycast(sensorStartingPosition, Quaternion.AngleAxis(frontSensorAngel, transform.up) * transform.forward, out hit, sensorLenght))
             {
 
@@ -234,11 +253,13 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     avoiding = true;
                     avoidMultiplier -= 0.5f;
                     isCollidedOnReverse = false;
+                    isCollidedOnSide = true;
+                    isCollidedInFront = false;
                 }
 
             }
 
-            //Front Left Sensor
+            // Front Left Sensor
             sensorStartingPosition -= transform.right * frontSideSensorPos * 2;
             if (Physics.Raycast(sensorStartingPosition, transform.forward, out hit, sensorLenght))
             {
@@ -252,9 +273,11 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     avoiding = true;
                     avoidMultiplier += 1f;
                     isCollidedOnReverse = false;
+                    isCollidedOnSide = false;
+                    isCollidedInFront = true;
                 }
 
-            } //Side Left Sensor
+            } //Side Front Left Sensor
             else if (Physics.Raycast(sensorStartingPosition, Quaternion.AngleAxis(-frontSensorAngel, transform.up) * transform.forward, out hit, sensorLenght))
             {
 
@@ -267,6 +290,49 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     avoiding = true;
                     avoidMultiplier += 0.5f;
                     isCollidedOnReverse = false;
+                    isCollidedOnSide = true;
+                    isCollidedInFront = false;
+
+                }
+
+            }
+
+            //Side Right Sensor
+            if (Physics.Raycast(sensorStartingPosition, Quaternion.AngleAxis(sideSensorAngel, transform.up) * transform.forward, out hit, sideSensorLenght))
+            {
+
+                if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai")
+                    && !hit.collider.CompareTag("Enemy")
+                    && !hit.collider.CompareTag("Player"))
+                {
+                    //print (hit.collider.tag);
+                    Debug.DrawLine(sensorStartingPosition, hit.point, Color.yellow);
+                    avoiding = true;
+                    avoidMultiplier -= 0.5f;
+                    isCollidedOnReverse = false;
+                    isCollidedOnSide = true;
+                    isCollidedInFront = false;
+
+                }
+
+            }
+
+            //Side Left Sensor
+            if (Physics.Raycast(sensorStartingPosition, Quaternion.AngleAxis(-sideSensorAngel, transform.up) * transform.forward, out hit, sideSensorLenght))
+            {
+
+                if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai")
+                    && !hit.collider.CompareTag("Enemy")
+                    && !hit.collider.CompareTag("Player"))
+                {
+                    //print (hit.collider.tag);
+                    Debug.DrawLine(sensorStartingPosition, hit.point, Color.yellow);
+                    avoiding = true;
+                    avoidMultiplier += 0.5f;
+                    isCollidedOnReverse = false;
+                    isCollidedOnSide = true;
+                    isCollidedInFront = false;
+
 
                 }
 
@@ -284,6 +350,8 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     Debug.DrawLine(backSensorStartingPos, hit.point, Color.red);
                     avoiding = true;
                     isCollidedOnReverse = true;
+                    isCollidedOnSide = false;
+                    isCollidedInFront = false;
 
                 }
 
@@ -294,16 +362,23 @@ namespace UnityStandardAssets.Vehicles.MyCar
                 //Steering(maxSteerAngel * avoidMultiplier);
                 //print(avoidMultiplier);
                 targetSteerAngel = maxSteerAngel * avoidMultiplier;
+                return;
             }
 
             // print(hit.distance + " " + CurrentSpeed);
 
-            if (hit.collider != null && !hit.collider.CompareTag("Ai") && hit.distance <= 1 && !isCollided)
-            {
-                avoiding = false;
-                //print("HIT !!!");
-                Stucked();
-            }
+            //if (hit.collider != null && !hit.collider.CompareTag("Ai")
+            //    && !hit.collider.CompareTag("Player")
+            //    && !hit.collider.CompareTag("Enemy")
+            //    && hit.distance <= 1 && !isCollided)
+            //{
+            ////    avoiding = false;
+            //    Unstuck();
+            //    print("HIT !!!");
+               
+            //////    //Stucked();
+            //////    Unstuck();
+            //}
         }
 
         void SensorsForOvertaking()
@@ -407,7 +482,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             }
         }
 
-        void speedWhileCornering()
+        void SpeedWhileCornering()
         {
             //print((int)steerWay);
             // targetSteerAngel = 2.5f * (int) steerWay;
@@ -416,6 +491,19 @@ namespace UnityStandardAssets.Vehicles.MyCar
             {
                 m_WheelColliders[i].motorTorque = m_WheelColliders[i].motorTorque / torqueSteeringDiscount;
             }
+            FireBrakeLights(true);
+        }
+
+        void SlowDown()
+        {
+            //print((int)steerWay);
+            // targetSteerAngel = 2.5f * (int) steerWay;
+
+            for (int i = 0; i < 4; i++)
+            {
+                m_WheelColliders[i].motorTorque = m_WheelColliders[i].motorTorque / torqueSteeringDiscount;
+            }
+            FireBrakeLights(true);
         }
 
         void ApplySteer()
@@ -502,7 +590,8 @@ namespace UnityStandardAssets.Vehicles.MyCar
             //{
                 if (wayPoints[_myWaypointIndex].GetComponent<WayPoint>().IsSlowPoint())//if(isCornering)
                 {
-                    speedWhileCornering();
+                //SpeedWhileCornering();
+                    SlowDown();
                 }
                 else
                 {
@@ -525,7 +614,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             //print (accel);
             float thrustTorque;
 
-            AiCarBraking(footbrake);
+            //AiCarBraking();
 
             switch (m_CarDriveType)
             {
@@ -548,6 +637,8 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     break;
 
             }
+
+            FireBrakeLights(false);
 
             /*for (int i = 0; i < 4; i++)
 			{
@@ -601,11 +692,11 @@ namespace UnityStandardAssets.Vehicles.MyCar
             }
         }
 
-        private void AiCarBraking(float brakeTorque)
+        private void AiCarBraking()//float brakeTorque
         {
 
-            if (isBraking)
-            {
+            //if (isBraking)
+            //{
                 //m_WheelColliders [2].brakeTorque = maxBrakeTorque;
                 //m_WheelColliders [3].brakeTorque = maxBrakeTorque;
                 for (int i = 0; i < 4; i++)
@@ -615,20 +706,20 @@ namespace UnityStandardAssets.Vehicles.MyCar
                         m_WheelColliders[i].brakeTorque = maxBrakeTorque;//m_BrakeTorque * brakeTorque;
                     }
                 }
-            }
-            else
-            {
-                for (int i = 0; i < 4; i++)
-                {
-                    m_WheelColliders[i].brakeTorque = 0;
-                }
-            }
+            //}
+            //else
+            //{
+            //    for (int i = 0; i < 4; i++)
+            //    {
+            //        m_WheelColliders[i].brakeTorque = 0;
+            //    }
+            //}
             /*else {
 				m_WheelColliders [2].brakeTorque = 0;
 				m_WheelColliders [3].brakeTorque = 0;
 			}*/
 
-            fireBrakeLights();
+            FireBrakeLights(true);
         }
 
         private void GearChanging()
@@ -683,7 +774,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             Revs = ULerp(revsRangeMin, revsRangeMax, m_GearFactor);
         }
 
-        private List<Transform> getPathTransform()
+        private List<Transform> GetPathTransform()
         {
             Transform[] pathTransform = path.GetComponentsInChildren<Transform>();
             List<Transform> wayPoints = new List<Transform>();
@@ -697,7 +788,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             return wayPoints;
         }
 
-        private List<Transform> getOvertakePathTransform()
+        private List<Transform> GetOvertakePathTransform()
         {
             Transform[] overtakingPath = path.GetComponentsInChildren<Transform>();
             List<Transform> overtakePoints = new List<Transform>();
@@ -749,7 +840,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     _myWaypointIndex++;
                 }
 
-                print("Normal: " + _myWaypointIndex + " for " + name);
+                //print("Normal: " + _myWaypointIndex + " for " + name);
 
                 if (checkpointSFX != null)
                 {
@@ -759,7 +850,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             }
         }
 
-        void onOffLights()
+        void OnOffLights()
         {
             foreach (Light light in lights)
             {
@@ -771,7 +862,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
         }
 
-        void fireBrakeLights()
+        void FireBrakeLights(bool isStopping)
         {
 
             foreach (Light light in brakeLights)
@@ -792,7 +883,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
 					}
 				}*/
 
-                if (isBraking)
+                if (isStopping)
                 {
                     light.enabled = true;
                 }
@@ -835,50 +926,101 @@ namespace UnityStandardAssets.Vehicles.MyCar
             }
         }
 
-        void Stucked()
-        {
-            if (CurrentSpeed < 8f)
-            {
-                //print(CurrentSpeed);
-                //print(collision.gameObject.name + " - " + collision.gameObject.tag + " Reverse !");
-
-                isCollided = true;
-                Unstuck();
+        //void Stucked()
+        //{
+        //    if (CurrentSpeed < 8f)
+        //    {
+        //        //print(CurrentSpeed);
+        //        //print(collision.gameObject.name + " - " + collision.gameObject.tag + " Reverse !");
 
 
-                // CalculateRevs();
-                //}
-            }
-        }
+
+        //        isCollided = true;
+        //        Unstuck();
+
+
+        //        // CalculateRevs();
+        //        //}
+        //    }
+        //}
 
         void Unstuck()
         {
-            // print("Reversing");
 
+            StopVehicle();
+
+            // print("Vars: " + isCollidedOnReverse + " " + isCollidedOnSide + " " + isCollidedInFront);
+
+
+            float appliedTorque = m_ReverseTorque;
             for (int i = 0; i < 4; i++)
             {
                 m_WheelColliders[i].motorTorque = 0;
-                m_WheelColliders[i].brakeTorque = maxBrakeTorque;
-            }
-
-            float appliedTorque = 4 * m_ReverseTorque;
-            for (int i = 0; i < 4; i++)
-            {
                 m_WheelColliders[i].brakeTorque = 0;
-                if (isCollidedOnReverse)
+                // ???????????
+                //if (isCollidedOnReverse || isCollidedOnSide)
+                //{
+                //    print("INGear");
+                //    //targetSteerAngel = 0;
+                //    m_WheelColliders[i].motorTorque = m_FullTorqueOverAllWheels;
+                //    //Respawn();
+                //} else
+                if (isCollidedInFront)
                 {
-                    m_WheelColliders[i].motorTorque = appliedTorque;
+                    print("REV");
+                    //targetSteerAngel = -maxSteerAngel/2;
+                    //targetSteerAngel = 0;
+                    m_WheelColliders[i].motorTorque = -appliedTorque / 2;
                 }
                 else
                 {
-                    m_WheelColliders[i].motorTorque = -appliedTorque;
+                    m_WheelColliders[i].motorTorque = appliedTorque;
+                    print("YEAP");
                 }
-
             }
-            // m_WheelColliders[2].motorTorque = m_WheelColliders[3].motorTorque = -reverersTorque;
+           
+
+            //if (isCollidedOnReverse || isCollidedOnSide)
+            //{
+            //    ApplySteer();
+            //}
+            //TODO Something here is needed ???
+            //Sensors();
+
+            //}
         }
 
-        void StopReverse()
+        void Respawn()
+        {    
+            float positionParZ = transform.position.z * wayPoints[_myWaypointIndex].position.z;
+            float positionParX = transform.position.x / wayPoints[_myWaypointIndex].position.x;
+            transform.rotation = Quaternion.identity;
+            if (positionParZ < 0)
+            {
+                transform.rotation *= Quaternion.Euler(0, 0, 0);
+            } else
+            {
+                transform.rotation *= Quaternion.Euler(0, 180, 0);
+            }
+
+            //if(positionParX <= 0.5f || positionParX >=1.5f)
+            //{
+            //    print("90 degrees");
+            //    transform.rotation *= Quaternion.Euler(0, 90, 0);
+            //} else if(positionParX <= -1.5f || positionParX >= -0.5f)
+            //{
+            //    print("-90 degrees");
+            //    transform.rotation *= Quaternion.Euler(0, -90, 0);
+            //}
+
+            //var targetRotation = Quaternion.LookRotation(wayPoints[_myWaypointIndex].position - transform.position, Vector3.up);
+            //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 3f);
+            transform.position = new Vector3(wayPoints[_myWaypointIndex].position.x, wayPoints[_myWaypointIndex].position.y, wayPoints[_myWaypointIndex].position.z);
+
+            isCollided = false;
+        }
+
+        void StopVehicle()
         {
             for (int i = 0; i < 4; i++)
             {
@@ -907,10 +1049,11 @@ namespace UnityStandardAssets.Vehicles.MyCar
                             //SceneManager.LoadScene("race_track_lake");
                     } else
             {*/
-            if (CurrentSpeed < 8f)
+            if (collision.gameObject.tag == "Obstacle")//
             {
+                //print("Hit the wall");
                 isCollided = true;
-                Unstuck();
+                //Unstuck();
             }
             // }
         }
