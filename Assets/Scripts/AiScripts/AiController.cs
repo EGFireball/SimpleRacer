@@ -433,7 +433,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             backSensorStartingPos += transform.up * backOvertakingSensorPos.y;
 
             float overtakeSteerMultiplier = 0;
-            //overtaking = false;
+            bool overtaking = false;
 
             //Front Sensor
             if (Physics.Raycast(sensorStartingPosition, transform.forward, out hit, overtakinSensorLenght))
@@ -441,10 +441,10 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
                 if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
                 {
-                    //overtaking = true;
+                    overtaking = true;
                     overtakeTimer = MAXTimeForOvertaking;
                     Debug.DrawLine(backSensorStartingPos, hit.point);
-                    //overtakeSteerMultiplier += 0.75f;
+                    overtakeSteerMultiplier += 2f;
                 }
             }
 
@@ -456,10 +456,10 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
                 if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
                 {
-                    //overtaking = true;
+                    overtaking = true;
                     overtakeTimer = MAXTimeForOvertaking;
                     Debug.DrawLine(backSensorStartingPos, hit.point);
-                    overtakeSteerMultiplier -= 1f;
+                    overtakeSteerMultiplier -= 1.5f;
                 }
 
             } //Side Right Sensor
@@ -468,10 +468,10 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
                 if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
                 {
-                    //overtaking = true;
+                    overtaking = true;
                     overtakeTimer = MAXTimeForOvertaking;
                     Debug.DrawLine(backSensorStartingPos, hit.point);
-                    overtakeSteerMultiplier -= 0.5f;
+                    overtakeSteerMultiplier -= 1f;
                 }
             }
 
@@ -481,10 +481,10 @@ namespace UnityStandardAssets.Vehicles.MyCar
             {
                 if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
                 {
-                    //overtaking = true;
+                    overtaking = true;
                     overtakeTimer = MAXTimeForOvertaking;
                     Debug.DrawLine(backSensorStartingPos, hit.point);
-                    overtakeSteerMultiplier += 1f;
+                    overtakeSteerMultiplier += 1.5f;
                 }
 
             } //Side Left Sensor
@@ -493,10 +493,10 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
                 if (hit.collider.CompareTag("Enemy") || hit.collider.CompareTag("Player"))
                 {
-                    //overtaking = true;
+                    overtaking = true;
                     overtakeTimer = MAXTimeForOvertaking;
                     Debug.DrawLine(backSensorStartingPos, hit.point);
-                    overtakeSteerMultiplier += 0.5f;
+                    overtakeSteerMultiplier += 1f;
                 }
             }
 
@@ -511,16 +511,16 @@ namespace UnityStandardAssets.Vehicles.MyCar
             }*/
 
 
-            if (overtakeTimer > 0f)
+			if (overtaking)//overtakeTimer > 0f)
             {
-                targetSteerAngel = maxSteerAngel/2 * overtakeSteerMultiplier;
+                targetSteerAngel = maxSteerAngel * overtakeSteerMultiplier;
                 //OvertakingPathPicker();
             }
-            else if(overtakeTimer <=0.1f)
-            {
-                CheckWaypointDistance();
-            }
-        }
+            //else //if(overtakeTimer <=0.1f)
+            //{
+            //    CheckWaypointDistance();
+            //}        
+		}
 
         void SpeedWhileCornering()
         {
@@ -1017,20 +1017,21 @@ namespace UnityStandardAssets.Vehicles.MyCar
                 {
                     m_WheelColliders[i].motorTorque = accel * appliedTorque;
                     print("FRONT");
-                } else
+                } 
+				/*else
                 {
                     print("BUM-BAM");
-                    //if(isCollidedOnReverse)
-                    //{
-                    //    m_WheelColliders[i].motorTorque = accel * appliedTorque;
-                    //} else
-                    //{
-                    //    m_WheelColliders[i].motorTorque = -accel * appliedTorque;
-                    //}
+                    if(isCollidedOnReverse)
+                    {
+                        m_WheelColliders[i].motorTorque = accel * appliedTorque;
+                    } else
+                    {
+                        m_WheelColliders[i].motorTorque = -accel * appliedTorque;
+                    }
                     //m_WheelColliders[i].motorTorque = appliedTorque;
-                    //WaitForSecondsRealtime(3f);
-                    Respawn();
-                }
+                    
+                    //Respawn();
+                }*/
             }
            
 
@@ -1047,7 +1048,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
         void Respawn()
         {    
             float positionParZ = transform.position.z * wayPoints[_myWaypointIndex].position.z;
-            float positionParX = transform.position.x / wayPoints[_myWaypointIndex].position.x;
+            //float positionParX = transform.position.x / wayPoints[_myWaypointIndex].position.x;
             transform.rotation = Quaternion.identity;
             if (positionParZ < 0)
             {

@@ -32,3 +32,5 @@ C:\Users\User\Desktop\SimpleRacer\Temp\bin\Debug\nunit.framework.dll
 C:\Users\User\Desktop\SimpleRacer\Temp\bin\Debug\UnityEngine.TestRunner.dll
 C:\Users\User\Desktop\SimpleRacer\Temp\bin\Debug\UnityEngine.TestRunner.xml
 C:\Users\User\Desktop\SimpleRacer\Temp\bin\Debug\nunit.framework.xml
+C:\Users\Ivaylo\Documents\SimpleRacer\obj\Debug\Assembly-CSharp.dll
+C:\Users\Ivaylo\Documents\SimpleRacer\obj\Debug\Assembly-CSharp.pdb
