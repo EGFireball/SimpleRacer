@@ -4,14 +4,15 @@
     <Files>
       <File FileName="Assets\Scripts\AiScripts\AiCarAudio.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\AiScripts\Path.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\AiScripts\AiController.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\WheelEffects.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\BasicScripts\CarAudio.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\BasicScripts\CarBasicControl.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\AiScripts\AiController.cs" Line="1121" Column="69" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="C:\Users\Ivaylo\Documents\SimpleRacer\Assets\Scripts\AiScripts\AiController.cs" line="1010" column="1" />
+      <Breakpoint file="C:\Users\Ivaylo\Documents\SimpleRacer\Assets\Scripts\AiScripts\AiController.cs" line="1016" column="1" />
+      <Breakpoint file="C:\Users\Ivaylo\Documents\SimpleRacer\Assets\Scripts\AiScripts\AiController.cs" line="1020" column="1" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

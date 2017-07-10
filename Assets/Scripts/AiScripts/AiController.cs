@@ -141,7 +141,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
                 overtakeTimer -= Time.deltaTime;
             }
 
-            CurrentSpeed = transform.GetComponent<Rigidbody>().velocity.magnitude * 2.23693629f;
+            //CurrentSpeed = transform.GetComponent<Rigidbody>().velocity.magnitude * 2.23693629f;
 
             //print (CurrentSpeed);
             //if (CurrentSpeed >= 5f && isCollided)
@@ -158,7 +158,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
             //print(targetSteerAngel + " ");
 
-            if (Mathf.Abs(targetSteerAngel) > maxSteeringAngelOnFullSpeed && CurrentSpeed > 10f)
+            if (Mathf.Abs(targetSteerAngel) > maxSteeringAngelOnFullSpeed && CurrentSpeed > 7f)
             {
                 //print("Steering...");
                 isCornering = true;
@@ -168,12 +168,12 @@ namespace UnityStandardAssets.Vehicles.MyCar
                 isCornering = false;
             }
 
-            if(CurrentSpeed > 10f)
+			if(CurrentSpeed > 10f && isCollided)
             {
                 isCollided = false;
             }
 
-            if (isCollided)
+			if (isCollided)
             {
                 Unstuck();
                 //print("RE-Spawning");
@@ -639,7 +639,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
                 }
             //}
 
-            CarSpeed();
+            CurrentSpeed = CarSpeed();
 
             CheckForWheelSpin();
             GearChanging();
@@ -946,7 +946,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             return false;
         }
 
-        private void CarSpeed()
+        private float CarSpeed()
         {
             float speed = m_Rigidbody.velocity.magnitude;
             switch (m_SpeedType)
@@ -964,6 +964,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
                         m_Rigidbody.velocity = (maxSpeed / 3.6f) * m_Rigidbody.velocity.normalized;
                     break;
             }
+			return speed;
         }
 
         //void Stucked()
@@ -986,7 +987,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
         void Unstuck()
         {
-
+			print ("AHEM");
             StopVehicle();
 
             // print("Vars: " + isCollidedOnReverse + " " + isCollidedOnSide + " " + isCollidedInFront);
@@ -1006,21 +1007,23 @@ namespace UnityStandardAssets.Vehicles.MyCar
                 //    m_WheelColliders[i].motorTorque = m_FullTorqueOverAllWheels;
                 //    //Respawn();
                 //} else
-                if (isCollidedInFront && !isCollidedOnSide)
-                {
-                    print("REV");
-                    //targetSteerAngel = -maxSteerAngel/2;
-                    //targetSteerAngel = 0;
-                    m_WheelColliders[i].motorTorque = -accel * appliedTorque;
-                }
-                else if (isCollidedOnReverse)
-                {
-                    m_WheelColliders[i].motorTorque = accel * appliedTorque;
-                    print("FRONT");
-                } 
+				if (isCollidedInFront && !isCollidedOnSide) {
+					print ("REV");
+					//targetSteerAngel = -maxSteerAngel/2;
+					//targetSteerAngel = 0;
+					m_WheelColliders [i].motorTorque = -accel * appliedTorque;
+					CalculateRevs ();
+				} else if (isCollidedOnReverse) {
+					m_WheelColliders [i].motorTorque = accel * appliedTorque;
+					print ("FRONT");
+				} else {
+					print("BUM-BAM");
+					//Respawn ();
+				
+				}
 				/*else
                 {
-                    print("BUM-BAM");
+                    
                     if(isCollidedOnReverse)
                     {
                         m_WheelColliders[i].motorTorque = accel * appliedTorque;
@@ -1047,6 +1050,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
         void Respawn()
         {    
+			print ("Respawn");
             float positionParZ = transform.position.z * wayPoints[_myWaypointIndex].position.z;
             //float positionParX = transform.position.x / wayPoints[_myWaypointIndex].position.x;
             transform.rotation = Quaternion.identity;
@@ -1104,14 +1108,37 @@ namespace UnityStandardAssets.Vehicles.MyCar
                             //SceneManager.LoadScene("race_track_lake");
                     } else
             {*/
+			//print("Speed: " + CurrentSpeed);
             if (collision.gameObject.tag == "Obstacle")//
             {
-                //print("Hit the wall");
+                print("Hit the wall");
                 isCollided = true;
                 //Unstuck();
             }
             // }
         }
+
+		private void OnCollisionStay(Collision collisionInfo) {
+			//if (collisionInfo.gameObject.tag == "Obstacle" && CurrentSpeed < 5f)//
+			//{
+				//print("Still on the wall");
+				//StopVehicle ();
+				//isCollided = true;
+
+				//Unstuck();
+			//}
+		}
+
+		private void OnCollisionExit(Collision collisionInfo) {
+
+			if (collisionInfo.gameObject.tag == "Obstacle")//
+			{
+				print("UNSTUCKED");
+				//StopVehicle ();
+				isCollided = false;
+				//Unstuck();
+			}
+		}
 
         internal enum SpeedType
         {
