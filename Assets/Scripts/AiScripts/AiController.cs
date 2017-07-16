@@ -76,6 +76,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
         //Sensors
         [Header("Sensors")]
         public float sensorLenght = 3f;
+        public float rearSensorLenght = 3f;
         public float sideSensorLenght = 1f;
         public Vector3 frontSensorPosition = new Vector3(0, 0.5f, 0.5f);
         public float frontSideSensorPos = 1.5f;
@@ -202,6 +203,8 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
             float avoidMultiplier = 0;
             avoiding = false;
+
+            bool avoidingOnReverse = false;
 
             //Front Sensor
             if (Physics.Raycast(sensorStartingPosition, transform.forward, out hit, sensorLenght))
@@ -340,7 +343,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
             }
 
             //Rear sensor
-            if (Physics.Raycast(backSensorStartingPos, -transform.forward, out hit, sensorLenght))
+            if (Physics.Raycast(backSensorStartingPos, -transform.forward, out hit, rearSensorLenght))
             {
 
                 if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai") 
@@ -348,8 +351,9 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     !hit.collider.CompareTag("Player"))
                 {
                     //print (hit.collider.tag);
-                    Debug.DrawLine(backSensorStartingPos, hit.point, Color.red);
-                   // avoiding = true;
+                    Debug.DrawLine(backSensorStartingPos, hit.point, Color.cyan);
+                    //avoiding = true;
+                    avoidingOnReverse = true;
                     isCollidedOnReverse = true;
                     isCollidedOnSide = false;
                     isCollidedInFront = false;
@@ -360,7 +364,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
 
             //Rear Right Sensor
             backSensorStartingPos += transform.right * rearSideSensorPos;
-            if (Physics.Raycast(backSensorStartingPos, -transform.forward, out hit, sensorLenght))
+            if (Physics.Raycast(backSensorStartingPos, -transform.forward, out hit, rearSensorLenght))
             {
 
                 if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai")
@@ -368,18 +372,36 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     && !hit.collider.CompareTag("Player"))
                 {
                     //print (hit.collider.tag + "..." + hit.collider.name);
-                    Debug.DrawLine(sensorStartingPosition, hit.point, Color.red);
-                   // avoiding = true;
-                    avoidMultiplier -= 1f;
+                    Debug.DrawLine(sensorStartingPosition, hit.point, Color.cyan);
+                    //avoiding = true;
+                    avoidingOnReverse = true;
+                    //avoidMultiplier -= 1f;
                     isCollidedOnReverse = true;
                     isCollidedOnSide = false;
                     isCollidedInFront = false;
                 }
 
-            }
+            }//Side Rear Right Sensor
+            //else if (Physics.Raycast(backSensorStartingPos, Quaternion.AngleAxis(frontSensorAngel, transform.up) * transform.forward, out hit, rearSensorLenght))
+            //{
+
+            //    if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai")
+            //        && !hit.collider.CompareTag("Enemy")
+            //        && !hit.collider.CompareTag("Player"))
+            //    {
+            //        //print (hit.collider.tag);
+            //        Debug.DrawLine(sensorStartingPosition, hit.point, Color.cyan);
+            //        //avoiding = true;
+            //        avoidMultiplier -= 0.5f;
+            //        isCollidedOnReverse = false;
+            //        isCollidedOnSide = true;
+            //        isCollidedInFront = true;
+            //    }
+
+            //}
             //Rear Left Sensor
             backSensorStartingPos -= transform.right * rearSideSensorPos * 2;
-            if (Physics.Raycast(backSensorStartingPos, -transform.forward, out hit, sensorLenght))
+            if (Physics.Raycast(backSensorStartingPos, -transform.forward, out hit, rearSensorLenght))
             {
 
                 if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai")
@@ -387,21 +409,45 @@ namespace UnityStandardAssets.Vehicles.MyCar
                     && !hit.collider.CompareTag("Player"))
                 {
                     //print (hit.collider.tag + "..." + hit.collider.name);
-                    Debug.DrawLine(sensorStartingPosition, hit.point, Color.red);
-                   // avoiding = true;
-                    avoidMultiplier += 1f;
+                    Debug.DrawLine(sensorStartingPosition, hit.point, Color.cyan);
+                    //avoiding = true;
+                    avoidingOnReverse = true;
+                    //avoidMultiplier += 1f;
                     isCollidedOnReverse = true;
                     isCollidedOnSide = false;
                     isCollidedInFront = false;
                 }
 
-            }
+            }// Rear Left Side Sensor
+             //else if (Physics.Raycast(backSensorStartingPos, Quaternion.AngleAxis(-frontSensorAngel, transform.up) * transform.forward, out hit, rearSensorLenght))
+             //{
+             //    if (!hit.collider.CompareTag("Terrain") && !hit.collider.CompareTag("Ai")
+             //        && !hit.collider.CompareTag("Enemy")
+             //        && !hit.collider.CompareTag("Player"))
+             //    {
+             //        //print (hit.collider.tag + "..." + hit.collider.name);
+             //        Debug.DrawLine(sensorStartingPosition, hit.point, Color.cyan);
+             //        //avoiding = true;
+             //        avoidMultiplier += 0.5f;
+             //        isCollidedOnReverse = true;
+             //        isCollidedOnSide = true;
+             //        isCollidedInFront = false;
+             //    }
+             //}
+
+
 
             if (avoiding)
             {
                 //Steering(maxSteerAngel * avoidMultiplier);
                 //print(avoidMultiplier);
                 targetSteerAngel = maxSteerAngel * avoidMultiplier;
+                return;
+            }
+
+            if(avoidingOnReverse)
+            {
+                SlowDown();
                 return;
             }
 
@@ -1018,9 +1064,10 @@ namespace UnityStandardAssets.Vehicles.MyCar
 					print ("FRONT");
 				} else {
 					print("BUM-BAM");
-					//Respawn ();
-				
-				}
+                    Respawn ();
+                    //m_WheelColliders[i].motorTorque = -accel * appliedTorque;
+
+                }
 				/*else
                 {
                     
@@ -1135,7 +1182,7 @@ namespace UnityStandardAssets.Vehicles.MyCar
 			{
 				print("UNSTUCKED");
 				//StopVehicle ();
-				isCollided = false;
+				//isCollided = false;
 				//Unstuck();
 			}
 		}
